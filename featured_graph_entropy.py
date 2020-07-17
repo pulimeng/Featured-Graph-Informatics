@@ -1,3 +1,5 @@
+import argparse
+
 import pandas as pd
 import networkx as nx
 
@@ -17,7 +19,7 @@ def iso_check(node_table, edge_table, node_col_name, edge_col_names):
     None
     """
     num_nodes = len(node_table[node_col_name].unique().tolist())
-    num_nodes_from_edge = len(set(reduced_edges[edge_col_names[0]].unique().tolist() + reduced_edges[edge_col_names[1]].unique().tolist()))
+    num_nodes_from_edge = len(set(edge_table[edge_col_names[0]].unique().tolist() + edge_table[edge_col_names[1]].unique().tolist()))
     if num_nodes > num_nodes_from_edge:
         print('Isolated nodes found in reduced graph')
     elif num_nodes == num_nodes_from_edge:
@@ -37,14 +39,14 @@ def graph_construction(node_table, edge_table, node_col_name, edge_col_names):
     X -- feature matrix (num_nodes x num_features)
     A -- adjacency matrix (num_nodes x num_nodes
     """
-    G = nx.from_pandas_edgelist(reduced_edges, source=edge_col_names[0], target=edge_col_names[1])
+    G = nx.from_pandas_edgelist(edge_table, source=edge_col_names[0], target=edge_col_names[1])
     # the following steps are very important since it ensures the order of nodes in the node table is the same as the order
     # or nodes from graph constructed by networkx
     nx_node_list = list(G.nodes)
     node_table = node_table.set_index(node_col_name)
     node_table = node_table.reindex(nx_node_list)
     node_table = node_table.reset_index()
-    X = reduced_nodes.iloc[:, [1,2,4]].to_numpy() # this selects the column(s) of the features you want to use
+    X = node_table.iloc[:, [1,2,4]].to_numpy() # this selects the column(s) of the features you want to use
     A = nx.to_numpy_array(G, nodelist=nx_node_list)
     return X, A
 
@@ -85,11 +87,23 @@ def fgraph_entropy(X, A):
         _, cnts = np.unique(target, return_counts=True)
         I0 = np.log2(X.shape[0])
         H += entropy(cnts, base=2)/I0
-    return H
+    return H/X.shape[1]
 
-reduced_nodes = pd.read_csv('./reduced_nodes.csv')
-reduced_edges = pd.read_csv('./reduced_edges.csv')
-iso_check(reduced_nodes, reduced_edges, node_col_name='ensembl', edge_col_names=['protein1', 'protein2'])
-X, A = graph_construction(reduced_nodes, reduced_edges, node_col_name='ensembl', edge_col_names=['protein1', 'protein2'])
-print('Feature only entropy after reduction: {:.4f}'.format(feature_entropy(X)))
-print('Featured-graph entropy after reduction: {:.4f}'.format(fgraph_entropy(X, A)))
+def main(opt):
+    nodes = pd.read_csv(opt.nfile)
+    edges = pd.read_csv(opt.efile)
+    edge_names = opt.edge.split(',')
+    iso_check(nodes, edges, node_col_name=opt.node, edge_col_names=[edge_names[0], edge_names[1]])
+    X, A = graph_construction(nodes, edges, node_col_name=opt.node, edge_col_names=[edge_names[0], edge_names[1]])
+    return feature_entropy(X), fgraph_entropy(X, A)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--nfile', type=str, help='Node table file name')
+    parser.add_argument('--efile', type=str, help='Edge table file name')
+    parser.add_argument('--node', type=str, help='Node column name')
+    parser.add_argument('--edge', type=str, help='Edge column names')
+    opt = parser.parse_args()
+    H0, H = main(opt)
+    print('Feature only entropy after reduction: {:.4f}'.format(H0))
+    print('Featured-graph entropy after reduction: {:.4f}'.format(H))
