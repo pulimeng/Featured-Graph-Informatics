@@ -21,3 +21,5 @@ A DataFrame of edge table in the following format:
 | NODEID_1 | NODEID_3 | x1_13 | x2_13 | ... | xi_13 |
 | ... | ... | ... | ... | ... | ... |
 | NODEID_n | NODEID_k | x1_nk | x2_nk | ... | xi_nk |
+
+To use the code 
