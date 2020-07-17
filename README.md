@@ -2,6 +2,14 @@
 
 Calculations of graph informatics (mainly entropy) for graphs with features to evaluate the results of graph reduction
 
+# Dependencies
+
+    1. pandas
+    2. networkx
+    3. numpy
+    4. scipy   
+
+# Usage
 Inputs:
 
 A DataFrame of node table in the following format:
