@@ -4,12 +4,13 @@ Calculations of graph informatics (mainly entropy) for graphs with features to e
 
 # Dependencies
 
-    1. pandas
-    2. networkx
-    3. numpy
-    4. scipy   
+1. pandas
+2. networkx
+3. numpy
+4. scipy   
 
 # Usage
+
 Inputs:
 
 A DataFrame of node table in the following format:
@@ -30,4 +31,6 @@ A DataFrame of edge table in the following format:
 | ... | ... | ... | ... | ... | ... |
 | NODEID_n | NODEID_k | x1_nk | x2_nk | ... | xi_nk |
 
-To use the code 
+Example of node table and edge table is provided in this repo, namely, `reduced_nodes.csv` and `reduced_edges.csv`.
+To run the code, run `python featured_graph_entropy.py --nfile node_file --efile edge_file --node node_column_name --edge edge_column_name1,edge_column_name2`.
+To use the example files, run `python featured_graph_entropy.py --nfile ./reduced_nodes.csv --efile ./reduced_edges.csv --node ensembl --edge protein1,protein2`.
